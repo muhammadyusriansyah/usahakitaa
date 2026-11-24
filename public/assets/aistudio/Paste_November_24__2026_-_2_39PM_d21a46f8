@@ -1,0 +1,253 @@
+# PROMPT MASTER — Membangun Web UsahaKita Secara Lengkap
+
+> Cara pakai: tempel seluruh isi file ini sebagai satu prompt ke agen coding, atau simpan sebagai `PROMPT.md` di folder kosong lalu perintahkan: **"Baca PROMPT.md dan kerjakan semua fase secara berurutan."**
+
+---
+
+## PERAN
+
+Kamu adalah front-end engineer senior berbahasa Indonesia yang ahli membangun aplikasi SaaS yang bersih, responsif, dan rapi. Kamu akan membangun prototype web **UsahaKita**, platform penjualan dan manajemen UMKM terintegrasi (model Freemium: Free, Pro, Business), dari awal sampai selesai.
+
+## CARA KERJA (WAJIB)
+
+1. Kerjakan **fase demi fase** sesuai urutan di bawah (Fase 0 sampai Fase 15). Jangan melompat, jangan menggabungkan fase.
+2. Di awal, buat `docs/PROGRESS.md` berisi daftar semua fase dengan kotak centang. Setelah setiap fase selesai dan lolos kriterianya, centang fase itu dan catat file yang dibuat/diubah.
+3. Jika proses terhenti atau konteks habis, saat dilanjutkan baca `docs/CONTEXT.md` dan `docs/PROGRESS.md`, lalu mulai dari fase pertama yang belum dicentang.
+4. Setiap fase hanya mengerjakan modulnya sendiri. Jangan mengubah modul lain kecuali untuk memperbaiki bug integrasi (Fase 15) atau memindahkan fungsi bersama ke `assets/js/utils.js`.
+5. Setelah setiap fase, jalankan uji mandiri sesuai "Kriteria" fase itu (baca kode, cek sintaks, telusuri alur). Perbaiki sebelum lanjut.
+6. Escape semua teks sebelum masuk `innerHTML`. Validasi semua input (angka tidak negatif, nama wajib). Tidak boleh ada tombol mati; semua tombol punya aksi nyata. Tidak boleh ada ID, nama fungsi, atau class yang bentrok.
+7. Setelah semua fase selesai, berikan laporan akhir: pohon folder, cara menjalankan, akun demo, daftar bug yang diperbaiki, dan hal yang belum bisa dikerjakan beserta alasannya.
+
+---
+
+## KONTEKS PRODUK
+
+- Produk: platform manajemen UMKM + website katalog. Bahasa Indonesia, mata uang Rupiah (format `Rp 1.250.000`).
+- Tiga sisi: (A) Dashboard pemilik/kasir, (B) Website katalog publik per UMKM dengan tombol pesan WhatsApp, (C) Admin platform.
+- Stack prototype: HTML + CSS + JavaScript murni, tanpa framework dan tanpa library eksternal (font Inter dengan fallback system-ui). Semua data lewat `assets/js/db.js` (localStorage) agar perubahan di dashboard tercermin di katalog.
+- Lapisan data berupa repository (`db.products.list()`, `.get()`, `.create()`, `.update()`, `.remove()`) agar nanti mudah diganti REST API (Laravel + PostgreSQL) tanpa mengubah modul UI.
+- **Multi-tenant**: setiap data bisnis punya `tenantId`. Setiap query WAJIB difilter dengan `tenantId` dari sesi; tidak ada fungsi yang mengembalikan data tenant lain. Katalog publik hanya membaca produk berstatus "dipublikasikan" milik bisnis dengan katalog aktif.
+- Autentikasi demo (hanya klien): `admin` / `admin` untuk admin platform, dan `demo@usahakita.id` / `demo1234` untuk pemilik demo. Sesi di `sessionStorage` (bungkus try/catch, fallback variabel JS). Beri komentar kode bahwa produksi wajib backend, password ter-hash, HTTPS, dan pembatasan percobaan login.
+
+## DESAIN
+
+```
+:root{--orange:#f4772b;--orange-dark:#df641d;--navy:#20243a;--ink:#252936;--muted:#7c8291;--line:#e9ebf0;--bg:#f6f7fa;--white:#fff;--green:#15966b;--red:#d94d4d;--amber:#b67a20}
+```
+
+- Logo: kotak oranye bergradien berisi "U" + teks "usahakita". Tombol primer oranye radius 10px; kartu putih border `var(--line)` radius 12–15px; sidebar navy dengan menu aktif berlatar `#383d58` + garis oranye di kiri; badge status berbentuk pil; font kecil-rapi (9–13px isi, 20–24px judul).
+- Komponen bersama di `base.css`: `.btn` (`.btn-primary`, `.btn-light`, `.btn-ghost`), `.card/.panel`, `.stat-card`, tabel + `.table-wrap` (scroll horizontal), `.status` (`.success`, `.pending`, `.danger`), `.field`, `.modal`, `.toast`, `.empty-note`, `.pagination`.
+- Responsif: desktop, tablet, HP; sidebar menjadi drawer di lebar ≤ 720px; halaman tidak boleh scroll horizontal.
+
+## MODEL DATA (seed otomatis saat pertama dijalankan)
+
+```
+tenants{id,slug,nama,jenis,pemilik,email,wa,alamat,deskripsi,logo,jamOperasional,katalogAktif,paket,status,dibuatPada}
+users{id,tenantId,nama,email,passwordDemo,peran:'pemilik'|'kasir'}
+categories{id,tenantId,nama}
+products{id,tenantId,kode,barcode,nama,deskripsi,kategoriId,hargaBeli,hargaJual,stok,stokMin,foto(dataURL),emoji,status:'dipublikasikan'|'draf'|'diarsipkan',varian[]}
+stockMovements{id,tenantId,productId,tipe:'masuk'|'keluar'|'penyesuaian'|'penjualan',jumlah,catatan,waktu}
+customers{id,tenantId,nama,telepon,piutang,dibuatPada}
+transactions{id:'TRX-00001',tenantId,waktu,pelangganId|null,items[{productId,nama,qty,harga}],subtotal,diskon,pajak,total,metode:'Tunai'|'QRIS'|'Transfer',dibayar,kembalian,status:'Selesai'|'Menunggu'|'Dibatalkan'}
+conversations{id,tenantId,nama,kanal:'Website'|'WhatsApp',unread,messages[{dari:'pelanggan'|'pemilik',teks,waktu}]}
+settings{tenantId,pajakPersen,footerStruk,...}
+plans{id:'free'|'pro'|'business',nama,harga,batas{produk,pengguna,cabang},fitur[]}
+tickets{id,tenantId,subjek,prioritas,status,pesan[]}
+systemLogs{id,level,pesan,waktu}
+```
+
+Seed: 1 tenant demo "Bisnis Kita Store" (kuliner, Banda Aceh, slug `bisnis-kita-store`), ±12 produk, 4 kategori, ±30 transaksi dalam 30 hari terakhir, 6 pelanggan, 4 percakapan, plus ±15 tenant dummy lain (beragam jenis usaha, paket, dan status) untuk menu admin.
+
+---
+
+# FASE 0 — Struktur proyek dan file konteks
+
+Buat struktur berikut (file boleh kosong/awal):
+
+```
+usahakita/
+├─ index.html                  (landing)
+├─ masuk.html, daftar.html     (login & registrasi pemilik UMKM)
+├─ app/index.html              (dashboard pemilik, routing hash)
+├─ app/js/                     (dashboard.js, produk.js, pos.js, stok.js, transaksi.js, laporan.js, pelanggan.js, pesan.js, pengaturan.js)
+├─ admin/index.html            (login + dashboard admin platform)
+├─ admin/js/
+├─ toko/index.html             (katalog publik, ?u=<slug-bisnis>)
+├─ assets/css/base.css
+├─ assets/js/db.js, auth.js, utils.js
+└─ docs/CONTEXT.md, docs/PROGRESS.md
+```
+
+Isi `docs/CONTEXT.md` dengan bagian "KONTEKS PRODUK", "DESAIN", dan "MODEL DATA" di atas (salin rapi). Isi `docs/PROGRESS.md` dengan daftar Fase 0–15 berkotak centang. Tampilkan pohon folder, lalu lanjut ke Fase 1.
+
+---
+
+# FASE 1 — Fondasi (base.css, db.js, auth.js, utils.js)
+
+1. `assets/css/base.css`: semua token warna dan komponen bersama, layout sidebar+topbar, responsif.
+2. `assets/js/db.js`: lapisan data localStorage dengan prefix `uk_`. Seed otomatis bila kosong. API per koleksi: `list(filter)`, `get(id)`, `create(data)`, `update(id,patch)`, `remove(id)`; semuanya WAJIB menerima `tenantId` dan menolak akses lintas tenant (lempar error). ID transaksi berurutan per tenant (`TRX-00001`). Fungsi `db.reset()` mengembalikan data demo. Semua akses storage dibungkus try/catch dengan fallback memori.
+3. `assets/js/auth.js`: `login(identifier,password,peran)`, `logout()`, `currentSession()`, `requireAuth(peran)` yang mengalihkan ke halaman login bila belum login. Dua jalur: admin (`admin/admin`) dan pemilik (akun demo + akun yang didaftarkan lewat `daftar.html`). Tenant berstatus "Ditangguhkan" ditolak saat login.
+4. `assets/js/utils.js`: `rupiah(n)`, `tanggalIndo(d)`, `escapeHTML(s)`, `toast(msg)`, `openModal/closeModal` (tutup lewat X, klik luar, Esc), `confirmDialog(msg)` → Promise, `downloadCSV(namaFile, rows)` (BOM UTF-8 agar terbuka benar di Excel), `slugify(s)`, `debounce(fn)`, `buatLinkWA(nomor, teks)`, `normalisasiWA(nomor)` (ke format 62...), dan komponen struk bersama (render + cetak).
+5. Buat halaman uji sementara `assets/test.html` untuk memanggil fungsi-fungsi tersebut, lalu hapus setelah lolos.
+
+Kriteria: tidak ada error; `db.products.list` untuk tenant A tidak pernah mengembalikan produk tenant B; `rupiah(1250000)` = `"Rp 1.250.000"`.
+
+---
+
+# FASE 2 — Landing page (`index.html`)
+
+Bagian: announcement bar; navbar (Fitur, Cara Kerja, Paket, Tentang; tombol "Masuk" ke `masuk.html` dan "Daftar Gratis" ke `daftar.html`; hamburger di HP); hero dengan headline "Bisnis lebih tertata. Usaha makin berkembang." + preview dashboard buatan CSS; strip jenis usaha (Kuliner, Retail, Kerajinan, Kecantikan, Jasa, Produk lokal); 6 kartu fitur (Kasir Digital, Produk & Persediaan, Laporan Penjualan, Pelanggan & Pesan, Katalog Online dengan pesan WhatsApp, Multi-Usaha); 3 langkah mulai; paket Free/Pro/Business dengan catatan "Harga dan batas penggunaan masih draf, ditentukan setelah validasi pasar" (data dibaca dari `db.plans` agar sinkron dengan menu admin); CTA; footer (tautan kecil ke `admin/index.html` dan "Lihat katalog demo" ke `toko/index.html?u=bisnis-kita-store`).
+Animasi halus saat scroll (IntersectionObserver), smooth scroll anchor, responsif 360–1440px.
+
+Kriteria: semua tautan benar; paket tampil dari db; tidak ada scroll horizontal di HP.
+
+---
+
+# FASE 3 — Registrasi dan login pemilik (`daftar.html`, `masuk.html`)
+
+**daftar.html**: wizard 2 langkah. Langkah 1 akun (nama, email, kata sandi + konfirmasi, indikator kekuatan sandi). Langkah 2 profil bisnis (nama usaha; jenis usaha dari daftar kategori bisnis di db — awalnya: Kuliner dan makanan, Minuman dan kedai kopi, Retail dan perdagangan, Fashion dan pakaian, Elektronik, Salon dan barbershop, Bengkel, Usaha jasa, Produksi dan manufaktur, Usaha online; nomor WhatsApp dinormalisasi otomatis ke 62...; alamat). Validasi lengkap; email tidak boleh duplikat. Saat sukses: buat tenant (slug unik dari nama usaha, paket `free`, `katalogAktif` true), user peran pemilik, 1 kategori awal "Umum", lalu masuk otomatis ke `app/index.html`. Simulasikan verifikasi email dengan banner di dashboard yang bisa ditutup.
+
+**masuk.html**: email + kata sandi (tampil/sembunyi), "Ingat saya", "Lupa kata sandi?" (modal isi email lalu toast simulasi), tombol "Masuk sebagai demo" yang mengisi akun demo. Pesan error jelas, loading singkat, redirect ke `app/index.html`; bila sudah login langsung redirect. Pesan khusus bila akun ditangguhkan.
+
+Kriteria: akun baru bisa registrasi lalu login ulang; data tenant baru terpisah dari tenant demo; refresh tidak menghapus sesi.
+
+---
+
+# FASE 4 — Shell dashboard pemilik + menu Dashboard (`app/index.html`, `app/js/dashboard.js`)
+
+**Shell**: `requireAuth('pemilik')`; sidebar navy (Dashboard, Kasir/POS, Produk, Persediaan Stok, Transaksi, Laporan, Pesan Pelanggan [badge belum dibaca], Pelanggan, Pengaturan Usaha) + kartu "Kembangkan usahamu" (paket saat ini) + tombol Keluar; topbar dengan breadcrumb, pencarian global (mencari produk dan membuka menu Produk), ikon notifikasi (stok menipis, pesan baru), avatar + nama + peran. Router hash (`#/dashboard`, `#/pos`, `#/produk`, `#/stok`, `#/transaksi`, `#/laporan`, `#/pesan`, `#/pelanggan`, `#/pengaturan`); tiap modul mendaftar lewat `window.UK.registerModule(nama, {render, onEnter})`. Menu yang modulnya belum ada menampilkan empty state "Segera hadir". Sidebar menjadi drawer di HP.
+
+**Dashboard**: semua dihitung dari db. 4 kartu (Penjualan hari ini + persentase vs kemarin, Jumlah transaksi, Produk terdaftar, Stok menipis); grafik garis SVG penjualan 7/30 hari dengan select periode yang berfungsi; donut penjualan per kategori + legenda; bar produk terlaris; tabel 5 transaksi terbaru dengan tautan "Lihat semua"; ringkasan pemasukan, pengeluaran, dan estimasi laba; tombol "Transaksi Baru" ke `#/pos`. Nama bisnis dan salam memakai data tenant.
+
+Kriteria: angka berubah saat data transaksi berubah; tidak ada data hard-coded; refresh tetap di halaman yang sama.
+
+---
+
+# FASE 5 — Produk dan kategori (`app/js/produk.js`)
+
+Tabel produk (foto/emoji, nama, kode, kategori, harga beli, harga jual, margin %, stok, status) dengan pencarian, filter kategori, filter status, pengurutan (nama/harga/stok), paginasi 10 baris, dan tampilan kartu/tabel yang bisa ditukar. Tambah/Ubah lewat modal: nama*, kode (otomatis bila kosong), barcode, kategori (dropdown + "Tambah kategori baru" inline), deskripsi singkat (maks 200 karakter dengan penghitung), harga beli, harga jual (peringatan jika jual < beli), stok awal, stok minimum, status (Dipublikasikan/Draf), upload foto (dataURL, batas 500 KB, preview, dipotong rasio 1:1 lewat canvas), varian opsional (nama + harga tambahan). Hapus = arsipkan dengan konfirmasi, plus filter "Diarsipkan" untuk memulihkan. Manajemen kategori di modal sendiri (tambah, ubah, hapus; tolak hapus bila masih dipakai; tolak duplikat). Tombol "Salin tautan katalog" dan "Lihat di katalog" ke `toko/index.html?u=<slug>`.
+Standar data konsisten: harga format Rupiah, nama kategori Title Case, deskripsi tanpa spasi ganda, validasi foto. Batas jumlah produk paket Free diambil dari `db.plans`: tampilkan progress dan blokir tambah bila penuh dengan ajakan upgrade.
+
+Kriteria: produk "Dipublikasikan" muncul di katalog, "Draf/Diarsipkan" tidak; stok awal tercatat di `stockMovements`; semua validasi bekerja.
+
+---
+
+# FASE 6 — Kasir / POS (`app/js/pos.js`)
+
+Layout dua kolom. Kiri: katalog produk (pencarian nama/kode/barcode dengan fokus otomatis dan Enter menambah produk, filter kategori berupa chip, kartu produk dengan harga dan stok; produk habis tampil redup dan tidak bisa ditambah). Kanan: keranjang — ubah qty (+/−/input), hapus item, tidak boleh melebihi stok, pilih pelanggan (opsional; cari + tambah cepat), diskon (Rp atau %), pajak otomatis dari `settings.pajakPersen`, subtotal/diskon/pajak/total, metode pembayaran (Tunai/QRIS/Transfer), uang diterima + tombol nominal cepat + kembalian otomatis, validasi uang kurang. "Tahan transaksi" menyimpan keranjang sementara dan "Lanjutkan" memulihkannya. Proses Pembayaran: buat transaksi (ID berurut), kurangi stok, catat `stockMovements` tipe `penjualan`; bila bayar kurang dan ada pelanggan, tambahkan ke piutang pelanggan. Setelah sukses, tampilkan modal struk (nama usaha, alamat, WA, item, total, metode, kembalian, footer dari settings) dengan tombol Cetak (`window.print` + CSS `@media print` lebar 58mm), Unduh PDF (lewat dialog cetak), dan Transaksi Baru. Pintasan: F2 fokus cari, F9 bayar.
+
+Kriteria: total dan kembalian akurat (uji: 3 item, diskon 10%, pajak 11%); stok berkurang tepat; transaksi muncul di menu Transaksi dan Dashboard tanpa refresh manual.
+
+---
+
+# FASE 7 — Persediaan stok (`app/js/stok.js`)
+
+Kartu ringkas: Total SKU, Stok Aman, Stok Menipis (stok ≤ stokMin), Stok Habis, Nilai Persediaan (stok × harga beli). Tabel stok per produk dengan status (Aman/Menipis/Habis), pencarian, filter status, dan tombol "Hanya stok menipis". Aksi per produk: Tambah stok (barang masuk), Kurangi stok, Penyesuaian stok (stok opname: input stok aktual, sistem menghitung selisih) lewat modal; catatan wajib untuk penyesuaian; stok tidak boleh negatif. Tab "Riwayat Perubahan" menampilkan `stockMovements` (waktu, produk, tipe, jumlah, saldo sesudah, catatan) dengan filter tipe, rentang tanggal, dan ekspor CSV. Edit stok minimum inline. Banner peringatan stok menipis dan sinkron dengan badge notifikasi topbar.
+
+Kriteria: setiap perubahan stok menghasilkan tepat 1 baris riwayat; nilai persediaan benar; perubahan langsung terlihat di Produk dan POS.
+
+---
+
+# FASE 8 — Transaksi (`app/js/transaksi.js`)
+
+Tabel riwayat (ID, tanggal, pelanggan, jumlah item, metode, total, status) dengan pencarian ID/pelanggan, filter status, metode, dan rentang tanggal, pengurutan, paginasi, serta baris total. Klik baris membuka drawer detail (item, diskon, pajak, total, pembayaran, kembalian) dengan tombol "Cetak ulang struk" (memakai komponen struk bersama di `utils.js`). Aksi: ubah status Menunggu → Selesai; Batalkan transaksi (konfirmasi + alasan; stok dikembalikan otomatis dan tercatat di `stockMovements`; transaksi dibatalkan tidak dihitung di laporan). Tombol "Ekspor CSV" untuk hasil yang sedang terfilter.
+
+Kriteria: pembatalan mengembalikan stok tepat; laporan dan dashboard berubah sesuai status; filter kombinasi bekerja.
+
+---
+
+# FASE 9 — Laporan (`app/js/laporan.js`)
+
+Filter periode: Hari ini, 7 hari, 30 hari, Bulan ini, Tahun ini, Rentang kustom. Tab: Ringkasan, Per Produk, Per Kategori, Per Periode (harian/mingguan/bulanan/tahunan), Laba Rugi sederhana. Ringkasan: omzet, jumlah transaksi, rata-rata transaksi, total diskon, total pajak, laba kotor (jual − beli), perbandingan dengan periode sebelumnya, grafik SVG. Per Produk: jumlah terjual, omzet, laba, peringkat. Per Kategori: kontribusi % dengan donut. Hanya transaksi berstatus Selesai yang dihitung. Ekspor: CSV (BOM UTF-8, terbuka di Excel) dan "Cetak/PDF" lewat `window.print` dengan CSS cetak rapi (judul, periode, nama usaha). Empty state bila periode tidak ada data.
+
+Kriteria: total laporan = jumlah transaksi Selesai pada periode sama; angka identik dengan Dashboard untuk periode yang sama.
+
+---
+
+# FASE 10 — Pelanggan dan piutang (`app/js/pelanggan.js`)
+
+Tabel pelanggan (nama, telepon, jumlah transaksi, total belanja, piutang, transaksi terakhir, status Aktif/Tidak aktif) dengan pencarian dan filter "Punya piutang". Tambah/Ubah/Hapus lewat modal (nama wajib, telepon dinormalisasi ke 62..., tolak duplikat telepon dalam tenant). Drawer detail: ringkasan, riwayat transaksi pelanggan, tombol "Hubungi via WhatsApp" (wa.me dengan sapaan), dan "Catat pembayaran piutang" (tidak boleh melebihi sisa; tercatat di riwayat piutang). Statistik atas: total pelanggan, pelanggan aktif 30 hari, total piutang. Total transaksi dan belanja dihitung dari `db.transactions` (Selesai).
+
+Kriteria: pelanggan yang dibuat di POS langsung muncul di sini; piutang dari POS bertambah dan berkurang sesuai pembayaran.
+
+---
+
+# FASE 11 — Pesan pelanggan (`app/js/pesan.js`)
+
+Layout tiga panel: daftar percakapan (pencarian; filter Semua/Belum dibaca/WhatsApp), jendela chat (bubble pelanggan dan pemilik, label tanggal, waktu, auto-scroll, textarea Enter kirim / Shift+Enter baris baru, balasan cepat: "Produk masih tersedia", "Cek pengiriman", "Terima kasih"), dan panel info pelanggan (sumber pesan, status, terakhir dihubungi, tombol tambah catatan yang benar-benar menyimpan, tombol "Lanjut WhatsApp" membuka wa.me dengan sapaan; bila nomor belum ada, minta isi lewat modal). Membuka percakapan menandainya terbaca dan memperbarui badge sidebar dan topbar. Di HP: daftar dan chat bergantian dengan tombol kembali. Pesan dari form "Tanya penjual" di katalog publik masuk sebagai percakapan kanal "Website" untuk tenant yang tepat.
+
+Kriteria: balasan tersimpan setelah refresh; badge belum dibaca akurat; percakapan tenant lain tidak pernah muncul.
+
+---
+
+# FASE 12 — Pengaturan usaha (`app/js/pengaturan.js`)
+
+Tab: (1) **Profil Usaha**: nama, jenis, deskripsi, alamat, email, nomor WhatsApp (normalisasi + validasi), logo (dataURL, batas 300 KB, preview), jam operasional per hari (toggle buka + jam buka/tutup). (2) **Katalog Online**: toggle aktif/nonaktif, slug/tautan toko (ubah slug dengan cek keunikan, tombol salin dan "Buka katalog"), pesan WhatsApp default (template placeholder `{produk} {harga} {jumlah} {tautan}` dengan pratinjau langsung). (3) **Transaksi & Struk**: persentase pajak, metode pembayaran aktif, footer struk, pratinjau struk. (4) **Pengguna**: akun pemilik; tambah kasir (nama, email, sandi demo) dengan batas paket; kasir hanya boleh mengakses Kasir/POS, Transaksi, dan Produk (baca) — terapkan di router `app/index.html` lewat pengecekan peran. (5) **Paket**: paket saat ini, perbandingan Free/Pro/Business dari `db.plans`, tombol "Upgrade" menampilkan toast "Pembayaran belum tersedia di demo". (6) **Zona berbahaya**: reset data demo (konfirmasi dengan mengetik "RESET").
+Semua tombol Simpan memvalidasi dan menampilkan toast; perubahan langsung terlihat di katalog, struk, dan sidebar.
+
+Kriteria: ubah nomor WhatsApp → tombol pesan di katalog memakai nomor baru; nonaktifkan katalog → `toko/index.html` menampilkan "Katalog tidak tersedia".
+
+---
+
+# FASE 13 — Website katalog publik (`toko/index.html`)
+
+Tanpa login. Baca `?u=<slug>`; bila slug tidak ditemukan atau katalog nonaktif, tampilkan halaman "Katalog tidak tersedia". Isi: header usaha (logo, nama, deskripsi, alamat, jam operasional + badge Buka/Tutup berdasarkan hari dan jam sekarang, tombol WhatsApp); pencarian nama (debounce); filter kategori berupa chip (+ "Semua"); pengurutan (terbaru, harga terendah, harga tertinggi, nama A–Z); grid produk responsif (foto/emoji rasio 1:1 seragam, nama, harga Rupiah, deskripsi singkat dipotong 2 baris, badge Tersedia/Habis); hanya produk "dipublikasikan" milik tenant tersebut. Klik produk membuka modal detail (foto, deskripsi lengkap, kategori, varian, pemilih jumlah).
+
+Tombol "Pesan via WhatsApp": buka `wa.me/<nomor bisnis>` dengan teks dari template pengaturan, default:
+
+```
+Halo, saya tertarik memesan produk berikut:
+
+Nama Produk: {produk}
+Harga: {harga}
+Jumlah: {jumlah}
+Tautan: {tautan}
+
+Apakah produk ini masih tersedia?
+```
+
+Produk habis: tombol dinonaktifkan. Setiap klik WhatsApp dicatat ke db (`waClicks` per tenant) untuk indikator di dashboard. Bagian "Tanya penjual" (nama + pesan) membuat/menambah percakapan kanal Website pada tenant tersebut. Footer kecil "Dibuat dengan UsahaKita". SEO dasar (title dan meta description dinamis), skeleton loading, mobile-first.
+
+Kriteria: produk baru dari dashboard muncul setelah refresh; draf/arsip tidak muncul; nomor dan pesan WhatsApp benar; pencarian dan filter bisa dikombinasikan; nyaman di 360px.
+
+---
+
+# FASE 14 — Admin platform (`admin/index.html`, `admin/js/`)
+
+Memakai `db.js` bersama (jangan menduplikasi data).
+
+**Login**: layout dua kolom (panel navy dengan tagline "Kelola seluruh ekosistem UMKM dari satu tempat" + kartu login). Username `admin`, sandi `admin` (validasi klien, komentar kode soal produksi). Salah → pesan merah "Username atau kata sandi salah." + kartu bergetar. Tombol loading ±700 ms, tampil/sembunyi sandi, Enter mengirim, sesi di `sessionStorage`, refresh tetap login, tombol Keluar. Catatan kecil "Mode demo — admin / admin".
+
+**Menu** (sidebar navy + topbar dengan pencarian global dan notifikasi):
+1. **Ringkasan**: kartu Total UMKM, UMKM aktif 30 hari, total transaksi diproses, pendapatan langganan bulan ini (dengan tren); grafik pertumbuhan UMKM 6 bulan; donut distribusi paket; bar jenis usaha terbanyak; tabel UMKM terbaru; log aktivitas; indikator PRD (katalog dipublikasikan, klik WhatsApp, pengguna yang kembali, konversi Free→Pro %). Semua dihitung dari seluruh tenant.
+2. **Akun UMKM**: tabel (usaha, pemilik, kategori, paket, tanggal daftar, status Aktif/Ditangguhkan/Menunggu verifikasi, katalog) + cari, filter status/paket, urut, paginasi 8 baris; aksi Lihat detail (modal), Tangguhkan/Aktifkan (konfirmasi; tenant ditangguhkan tidak bisa login dan katalognya nonaktif), Ubah paket; ekspor CSV hasil filter.
+3. **Paket Langganan**: tiga kartu paket dengan harga dan batas yang dapat diedit (menulis ke `db.plans` sehingga landing dan pengaturan pemilik ikut berubah), catatan harga masih draf, jumlah pelanggan per paket.
+4. **Kategori Bisnis**: CRUD 10 kategori awal sesuai PRD, aktif/nonaktif, jumlah UMKM per kategori, cegah duplikat/kosong, cegah hapus bila dipakai (sarankan nonaktifkan). Daftar ini dipakai dropdown jenis usaha di `daftar.html`.
+5. **Pemantauan Sistem**: status layanan (API, Database, Penyimpanan gambar, Website katalog) hijau/kuning/merah, uptime (target 99,5%), waktu respons rata-rata, penyimpanan terpakai, status backup, grafik mini 24 jam, tabel log (info/peringatan/error), tombol Segarkan yang mengacak nilai dummy.
+6. **Laporan Platform**: filter periode; pendaftaran UMKM, transaksi, pendapatan langganan; ekspor CSV dan cetak.
+7. **Dukungan Pengguna**: daftar tiket (filter status/prioritas), panel detail dengan riwayat pesan, balasan admin, ubah status Baru/Diproses/Selesai.
+8. **Pengaturan Admin**: profil, ubah sandi (modal, validasi; demo tidak mengubah kredensial), toggle notifikasi.
+
+Umum: toast, modal (X/klik luar/Esc), empty state, responsif 360–1440px.
+
+Kriteria: login `admin/admin` berhasil dan kredensial lain gagal; tenant yang ditangguhkan benar-benar tidak bisa login di `masuk.html`; edit paket terlihat di landing; tidak ada tombol mati.
+
+---
+
+# FASE 15 — Integrasi, QA, dan perapian akhir
+
+Jangan menambah fitur baru; audit dan perbaiki saja.
+
+1. Jalankan skenario ujung-ke-ujung dan perbaiki bug: daftar akun baru → tambah 3 produk (1 draf) → cek katalog (draf tidak tampil) → jual 2 produk di POS → cek stok, transaksi, laporan, dashboard → batalkan transaksi → stok kembali → kirim pesan dari "Tanya penjual" di katalog → muncul di Pesan Pelanggan → admin menangguhkan tenant → login pemilik ditolak dan katalog nonaktif.
+2. Uji isolasi tenant: pastikan tidak ada jalur yang menampilkan data tenant lain (dashboard, laporan, katalog, pesan, pelanggan).
+3. Konsistensi: format Rupiah dan tanggal Indonesia di semua halaman; tidak ada ID/fungsi/class bentrok; tidak ada error atau warning di console; tidak ada tombol mati; fokus keyboard terlihat; atribut aria pada tombol ikon.
+4. Responsif: periksa 360px, 768px, dan 1440px di semua halaman, tanpa scroll horizontal pada body.
+5. Tulis `README.md`: cara menjalankan (buka `index.html` atau server statis sederhana), akun demo, struktur folder, dan bagian **"Menuju produksi"**: `db.js` → REST API, autentikasi klien → backend dengan password ter-hash + HTTPS + rate limit, upload gambar → object storage, laporan PDF/Excel sisi server.
+
+Keluaran akhir: daftar bug yang diperbaiki, daftar yang belum bisa diperbaiki beserta alasannya, dan hasil checklist.
+
+---
+
+## CATATAN KEAMANAN (untuk Anda, bukan untuk agen)
+
+Semua login (`admin/admin`, akun demo) hanya divalidasi di browser. Ini cukup untuk prototype, tetapi tidak aman untuk produksi.

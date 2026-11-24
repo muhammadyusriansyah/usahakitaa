@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UsahaKita — Platform Manajemen UMKM & Katalog Online WhatsApp</title>
+  <meta name="description" content="Platform penjualan dan manajemen UMKM terintegrasi: Kasir Digital, Produk & Persediaan, Laporan Penjualan, Pelanggan, dan Katalog Online WhatsApp." />
+  <meta property="og:title" content="UsahaKita — Bisnis lebih tertata. Usaha makin berkembang." />
+  <meta property="og:description" content="Kelola kasir, stok, laporan, pelanggan, dan katalog WhatsApp dalam satu dashboard rapi untuk UMKM Indonesia." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <style>
+    .lp-announce {
+      background: var(--navy);
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      font-size: 12px;
+      padding: 8px 16px;
+    }
+    .lp-announce a {
+      color: #ffb07a;
+      font-weight: 600;
+      text-decoration: underline;
+      margin-left: 6px;
+    }
+    .lp-nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+    }
+    .lp-container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    .lp-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      height: 64px;
+    }
+    .lp-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .lp-links a {
+      white-space: nowrap;
+      transition: color 0.15s ease;
+    }
+    .lp-links a:hover { color: var(--ink); }
+    .lp-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .lp-burger {
+      display: none;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--white);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .lp-mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 20px 18px;
+      border-top: 1px solid var(--line);
+      background: var(--white);
+    }
+    .lp-mobile-menu.open { display: flex; }
+    .lp-mobile-menu a.lp-m-link {
+      padding: 8px 0;
+      font-weight: 600;
+      color: var(--ink);
+      border-bottom: 1px solid var(--line);
+    }
+
+    /* Hero */
+    .lp-hero {
+      padding: 52px 0 44px;
+      background: radial-gradient(circle at 85% 12%, rgba(244,119,43,0.1), transparent 42%), var(--bg);
+    }
+    .lp-hero-grid {
+      display: grid;
+      grid-template-columns: 1.02fr 0.98fr;
+      gap: 36px;
+      align-items: center;
+    }
+    .lp-kicker {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--orange-dark);
+      margin-bottom: 10px;
+    }
+    .lp-hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      text-wrap: balance;
+    }
+    .lp-hero-desc {
+      margin: 0 0 22px;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 52ch;
+    }
+    .lp-hero-cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .lp-hero-meta {
+      margin-top: 18px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Pure CSS Dashboard Preview */
+    .lp-preview {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 18px 42px rgba(32,36,58,0.09);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      min-height: 310px;
+    }
+    .lp-prev-side {
+      background: var(--navy);
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: rgba(255,255,255,0.72);
+      font-size: 10.5px;
+    }
+    .lp-prev-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 11.5px;
+      margin-bottom: 10px;
+    }
+    .lp-prev-brand span {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: var(--orange);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .lp-prev-nav {
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+    .lp-prev-nav.active {
+      background: var(--navy-active);
+      color: #fff;
+      box-shadow: inset 3px 0 0 var(--orange);
+    }
+    .lp-prev-main {
+      padding: 14px;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .lp-prev-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    .lp-prev-pill {
+      background: var(--orange);
+      color: #fff;
+      padding: 4px 9px;
+      border-radius: 7px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .lp-prev-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .lp-prev-kpi {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px;
+    }
+    .lp-prev-kpi small { font-size: 9.5px; color: var(--muted); display: block; }
+    .lp-prev-kpi strong { font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .lp-prev-chart {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .lp-prev-bars {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      align-items: end;
+      gap: 6px;
+      height: 74px;
+      margin-top: 8px;
+    }
+    .lp-prev-bar {
+      background: linear-gradient(180deg, var(--orange) 0%, #f9b284 100%);
+      border-radius: 5px 5px 2px 2px;
+    }
+    .lp-prev-rows {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 10.5px;
+    }
+    .lp-prev-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--line);
+    }
+    .lp-prev-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+    /* Strip jenis usaha */
+    .lp-strip {
+      background: var(--white);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 16px 0;
+    }
+    .lp-strip-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .lp-strip-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .lp-strip-items {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .lp-strip-items span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Sections */
+    .lp-section {
+      padding: 58px 0;
+    }
+    .lp-section-head {
+      max-width: 600px;
+      margin: 0 auto 32px;
+      text-align: center;
+    }
+    .lp-section-head h2 {
+      margin: 0 0 8px;
+      font-size: clamp(21px, 2.8vw, 28px);
+      letter-spacing: -0.02em;
+    }
+    .lp-section-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .lp-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .lp-feature-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+    .lp-feature-card:hover {
+      transform: translateY(-2px);
+      border-color: #d6dae6;
+    }
+    .lp-feature-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--orange-soft);
+      color: var(--orange-dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .lp-feature-card h3 {
+      margin: 0 0 6px;
+      font-size: 15px;
+    }
+    .lp-feature-card p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .lp-steps {
+      background: var(--white);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .lp-step-card {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--bg);
+    }
+    .lp-step-num {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--orange-dark);
+      margin-bottom: 6px;
+    }
+
+    /* Plans */
+    .lp-plan-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .lp-plan-card.popular {
+      border-color: var(--orange);
+      box-shadow: 0 12px 28px rgba(244,119,43,0.1);
+    }
+    .lp-plan-price {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .lp-plan-price small {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .lp-plan-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 12.5px;
+      color: var(--ink);
+      flex: 1;
+    }
+    .lp-plan-list li::before {
+      content: '✓ ';
+      color: var(--green);
+      font-weight: 700;
+    }
+    .lp-draft-note {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* CTA & Footer */
+    .lp-cta-box {
+      background: var(--navy);
+      color: #fff;
+      border-radius: 18px;
+      padding: 36px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .lp-cta-box h2 { margin: 0 0 6px; font-size: 22px; }
+    .lp-cta-box p { margin: 0; color: rgba(255,255,255,0.76); font-size: 13.5px; }
+
+    .lp-footer {
+      border-top: 1px solid var(--line);
+      background: var(--white);
+      padding: 28px 0;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .lp-footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .lp-footer-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .lp-footer-links a:hover { color: var(--ink); text-decoration: underline; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+    }
+
+    @media (max-width: 960px) {
+      .lp-hero-grid { grid-template-columns: 1fr; }
+      .lp-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      .lp-links, .lp-nav-actions { display: none; }
+      .lp-burger { display: inline-flex; }
+      .lp-grid-3 { grid-template-columns: 1fr; }
+      .lp-preview { grid-template-columns: 1fr; }
+      .lp-prev-side { flex-direction: row; overflow-x: auto; }
+      .lp-prev-brand { margin-bottom: 0; margin-right: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="lp-announce">
+    Kelola kasir, stok, dan katalog WhatsApp dalam satu tempat.
+    <a href="toko/index.html?u=bisnis-kita-store">Coba katalog demo</a>
+  </div>
+
+  <header class="lp-nav-wrap">
+    <div class="lp-container">
+      <div class="lp-nav">
+        <a href="index.html" class="uk-logo" aria-label="Beranda UsahaKita">
+          <span class="uk-logo-mark">U</span>
+          <span class="uk-logo-text">usahakita</span>
+        </a>
+        <nav class="lp-links" aria-label="Navigasi utama">
+          <a href="#fitur">Fitur</a>
+          <a href="#cara-kerja">Cara Kerja</a>
+          <a href="#paket">Paket</a>
+          <a href="#tentang">Tentang</a>
+        </nav>
+        <div class="lp-nav-actions">
+          <a href="masuk.html" class="btn btn-light">Masuk</a>
+          <a href="daftar.html" class="btn btn-primary">Daftar Gratis</a>
+        </div>
+        <button type="button" class="lp-burger" id="lp-burger-btn" aria-label="Buka menu navigasi" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="lp-mobile-menu" id="lp-mobile-menu">
+      <a href="#fitur" class="lp-m-link">Fitur</a>
+      <a href="#cara-kerja" class="lp-m-link">Cara Kerja</a>
+      <a href="#paket" class="lp-m-link">Paket</a>
+      <a href="#tentang" class="lp-m-link">Tentang</a>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <a href="masuk.html" class="btn btn-light" style="flex:1">Masuk</a>
+        <a href="daftar.html" class="btn btn-primary" style="flex:1">Daftar Gratis</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="lp-hero">
+      <div class="lp-container lp-hero-grid">
+        <div>
+          <div class="lp-kicker">Platform Terintegrasi untuk UMKM Indonesia</div>
+          <h1>Bisnis lebih tertata. Usaha makin berkembang.</h1>
+          <p class="lp-hero-desc">
+            Catat transaksi kasir, pantau persediaan stok, kelola piutang pelanggan, dan tampilkan produk Anda lewat website katalog online yang langsung terhubung ke WhatsApp.
+          </p>
+          <div class="lp-hero-cta">
+            <a href="daftar.html" class="btn btn-primary">Daftar Gratis Sekarang</a>
+            <a href="toko/index.html?u=bisnis-kita-store" class="btn btn-light">Lihat Katalog Demo</a>
+          </div>
+          <div class="lp-hero-meta">
+            <span>Tanpa kartu kredit</span>
+            <span>·</span>
+            <span>Siap dipakai di HP &amp; laptop</span>
+            <span>·</span>
+            <span>Akun demo tersedia</span>
+          </div>
+        </div>
+
+        <div class="lp-preview" aria-label="Pratinjau tampilan dashboard UsahaKita">
+          <aside class="lp-prev-side">
+            <div class="lp-prev-brand"><span>U</span> usahakita</div>
+            <div class="lp-prev-nav active">Dashboard</div>
+            <div class="lp-prev-nav">Kasir / POS</div>
+            <div class="lp-prev-nav">Produk</div>
+            <div class="lp-prev-nav">Stok</div>
+            <div class="lp-prev-nav">Laporan</div>
+          </aside>
+          <div class="lp-prev-main">
+            <div class="lp-prev-top">
+              <span>Bisnis Kita Store</span>
+              <span class="lp-prev-pill">+ Transaksi Baru</span>
+            </div>
+            <div class="lp-prev-kpis">
+              <div class="lp-prev-kpi"><small>Penjualan Hari Ini</small><strong>Rp 1.480.000</strong></div>
+              <div class="lp-prev-kpi"><small>Transaksi</small><strong>18 Nota</strong></div>
+              <div class="lp-prev-kpi"><small>Stok Menipis</small><strong>2 SKU</strong></div>
+            </div>
+            <div class="lp-prev-chart">
+              <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted)">
+                <strong>Tren Omzet 7 Hari</strong>
+                <span style="color:var(--green);font-weight:600">+18%</span>
+              </div>
+              <div class="lp-prev-bars">
+                <div class="lp-prev-bar" style="height:42%"></div>
+                <div class="lp-prev-bar" style="height:58%"></div>
+                <div class="lp-prev-bar" style="height:48%"></div>
+                <div class="lp-prev-bar" style="height:74%"></div>
+                <div class="lp-prev-bar" style="height:64%"></div>
+                <div class="lp-prev-bar" style="height:88%"></div>
+                <div class="lp-prev-bar" style="height:96%"></div>
+              </div>
+            </div>
+            <div class="lp-prev-rows">
+              <div class="lp-prev-row"><span>TRX-00030 · Kopi Sanger (3)</span><strong>Rp 54.000</strong></div>
+              <div class="lp-prev-row"><span>TRX-00029 · Paket Oleh-Oleh</span><strong>Rp 95.000</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-strip" aria-label="Jenis usaha yang didukung">
+      <div class="lp-container lp-strip-inner">
+        <div class="lp-strip-label">Cocok untuk berbagai bidang usaha:</div>
+        <div class="lp-strip-items">
+          <span>Kuliner</span>
+          <span>·</span>
+          <span>Retail</span>
+          <span>·</span>
+          <span>Kerajinan</span>
+          <span>·</span>
+          <span>Kecantikan</span>
+          <span>·</span>
+          <span>Jasa</span>
+          <span>·</span>
+          <span>Produk lokal</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section" id="fitur">
+      <div class="lp-container">
+        <div class="lp-section-head reveal">
+          <h2>Semua alat operasional dalam satu alur kerja</h2>
+          <p>Dirancang agar pemilik usaha dan kasir dapat bekerja cepat tanpa spreadsheet yang berantakan.</p>
+        </div>
+        <div class="lp-grid-3">
+          <article class="lp-feature-card reveal">
+            <div class="lp-feature-icon" aria-hidden="true">🧾</div>
+            <h3>Kasir Digital</h3>
+            <p>Proses transaksi tunai, QRIS, maupun transfer lengkap dengan diskon, pajak, tahan transaksi, dan cetak struk 58mm.</p>
+          </article>
+          <article class="lp-feature-card reveal">
+            <div class="lp-feature-icon" aria-hidden="true">📦</div>
+            <h3>Produk &amp; Persediaan</h3>
+            <p>Kelola varian, harga modal &amp; jual, stok opname, serta peringatan otomatis saat stok mendekati batas minimum.</p>
+          </article>
+          <article class="lp-feature-card reveal">
+            <div class="lp-feature-icon" aria-hidden="true">📊</div>
+            <h3>Laporan Penjualan</h3>
+            <p>Pantau omzet, laba kotor, performa per produk dan kategori, lalu unduh CSV Excel atau cetak PDF kapan saja.</p>
+          </article>
+          <article class="lp-feature-card reveal">
+            <div class="lp-feature-icon" aria-hidden="true">💬</div>
+            <h3>Pelanggan &amp; Pesan</h3>
+            <p>Simpan data pelanggan, catat pembayaran piutang, dan balas pertanyaan pembeli dari website katalog maupun WhatsApp.</p>
+          </article>
+          <article class="lp-feature-card reveal">
+            <div class="lp-feature-icon" aria-hidden="true">🛍️</div>
+            <h3>Katalog Online dengan Pesan WhatsApp</h3>
+            <p>Setiap usaha langsung memperoleh halaman toko online publik yang sinkron dengan stok dan tombol pesan WhatsApp.</p>
+          </article>
+          <article class="lp-feature-card reveal">
+            <div class="lp-feature-icon" aria-hidden="true">🏪</div>
+            <h3>Multi-Usaha</h3>
+            <p>Arsitektur terisolasi per bisnis lengkap dengan peran pemilik dan kasir serta panel pengelolaan ekosistem platform.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section lp-steps" id="cara-kerja">
+      <div class="lp-container">
+        <div class="lp-section-head reveal">
+          <h2>Tiga langkah mulai menata usaha</h2>
+          <p>Dari pendaftaran hingga menerima pesanan pertama dalam hitungan menit.</p>
+        </div>
+        <div class="lp-grid-3">
+          <div class="lp-step-card reveal">
+            <div class="lp-step-num">01. DAFTAR AKUN &amp; PROFIL</div>
+            <h3 style="margin:0 0 6px;font-size:15px">Buat identitas usaha</h3>
+            <p style="margin:0;font-size:13px;color:var(--muted)">Isi nama usaha, jenis bisnis, dan nomor WhatsApp aktif. Tautan katalog publik Anda langsung terbentuk otomatis.</p>
+          </div>
+          <div class="lp-step-card reveal">
+            <div class="lp-step-num">02. INPUT PRODUK &amp; STOK</div>
+            <h3 style="margin:0 0 6px;font-size:15px">Atur katalog &amp; harga</h3>
+            <p style="margin:0;font-size:13px;color:var(--muted)">Tambahkan foto produk, harga jual, harga beli, serta batas stok minimum untuk pantauan harian yang akurat.</p>
+          </div>
+          <div class="lp-step-card reveal">
+            <div class="lp-step-num">03. JUAL &amp; PANTAU LAPORAN</div>
+            <h3 style="margin:0 0 6px;font-size:15px">Layani di kasir &amp; online</h3>
+            <p style="margin:0;font-size:13px;color:var(--muted)">Catat penjualan di menu Kasir/POS dan bagikan tautan toko Anda agar pembeli dapat memesan via WhatsApp.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lp-section" id="paket">
+      <div class="lp-container">
+        <div class="lp-section-head reveal">
+          <h2>Pilihan paket sesuai skala usaha</h2>
+          <p>Mulai gratis dan tingkatkan kapasitas seiring bertambahnya produk serta tim kasir Anda.</p>
+        </div>
+        <div class="lp-grid-3" id="lp-plans-grid"></div>
+        <p class="lp-draft-note">Catatan: Harga dan batas penggunaan masih draf, ditentukan setelah validasi pasar.</p>
+      </div>
+    </section>
+
+    <section class="lp-section" id="tentang" style="padding-top:12px">
+      <div class="lp-container">
+        <div class="lp-cta-box reveal">
+          <div>
+            <h2>Siap merapikan operasional usaha Anda hari ini?</h2>
+            <p>Coba langsung akun pemilik demo atau buat akun usaha baru secara gratis.</p>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <a href="masuk.html" class="btn btn-light">Masuk Akun Demo</a>
+            <a href="daftar.html" class="btn btn-primary">Daftar Gratis</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="lp-footer">
+    <div class="lp-container lp-footer-row">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="uk-logo">
+          <span class="uk-logo-mark" style="width:24px;height:24px;font-size:12px">U</span>
+          <span class="uk-logo-text" style="font-size:14px">usahakita</span>
+        </span>
+        <span>&copy; 2026 UsahaKita. Prototype platform manajemen UMKM.</span>
+      </div>
+      <div class="lp-footer-links">
+        <a href="toko/index.html?u=bisnis-kita-store">Lihat katalog demo</a>
+        <a href="masuk.html">Masuk Pemilik</a>
+        <a href="admin/index.html">Admin Platform</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script>
+    (function () {
+      var burger = document.getElementById('lp-burger-btn');
+      var mMenu = document.getElementById('lp-mobile-menu');
+      if (burger && mMenu) {
+        burger.addEventListener('click', function () {
+          var open = mMenu.classList.toggle('open');
+          burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        mMenu.querySelectorAll('a').forEach(function (a) {
+          a.addEventListener('click', function () {
+            mMenu.classList.remove('open');
+            burger.setAttribute('aria-expanded', 'false');
+          });
+        });
+      }
+
+      var grid = document.getElementById('lp-plans-grid');
+      if (grid && window.db) {
+        var plans = window.db.plans.list();
+        grid.innerHTML = plans.map(function (p) {
+          var isPop = p.id === 'pro';
+          var priceText = Number(p.harga) === 0 ? 'Gratis' : UKUtils.rupiah(p.harga);
+          var fiturList = (p.fitur || []).map(function (f) {
+            return '<li>' + UKUtils.escapeHTML(f) + '</li>';
+          }).join('');
+          var batas = p.batas || {};
+          return (
+            '<div class="lp-plan-card reveal ' + (isPop ? 'popular' : '') + '">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                '<strong style="font-size:16px">' + UKUtils.escapeHTML(p.nama) + '</strong>' +
+                (isPop ? '<span class="status pending">Populer</span>' : '') +
+              '</div>' +
+              '<div class="lp-plan-price">' + UKUtils.escapeHTML(priceText) + (Number(p.harga) > 0 ? '<small> / bulan</small>' : '') + '</div>' +
+              '<div style="font-size:12px;color:var(--muted)">Batas: ' + Number(batas.produk || 0) + ' produk · ' + Number(batas.pengguna || 1) + ' pengguna · ' + Number(batas.cabang || 1) + ' cabang</div>' +
+              '<ul class="lp-plan-list">' + fiturList + '</ul>' +
+              '<a href="daftar.html" class="btn ' + (isPop ? 'btn-primary' : 'btn-light') + '" style="width:100%">Pilih Paket ' + UKUtils.escapeHTML(p.nama) + '</a>' +
+            '</div>'
+          );
+        }).join('');
+      }
+
+      var els = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1 });
+        els.forEach(function (el) { io.observe(el); });
+      } else {
+        els.forEach(function (el) { el.classList.add('visible'); });
+      }
+    })();
+  </script>
+</body>
+</html>

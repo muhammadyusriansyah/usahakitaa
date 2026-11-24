@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Masuk Pemilik — UsahaKita</title>
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      background: var(--bg);
+    }
+    .login-side {
+      background: var(--navy);
+      color: #fff;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .login-side h1 {
+      font-size: 24px;
+      line-height: 1.25;
+      margin: 24px 0 10px;
+    }
+    .login-side p {
+      color: rgba(255,255,255,0.75);
+      font-size: 13.5px;
+      margin: 0;
+    }
+    .login-main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 16px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 430px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 26px;
+      box-shadow: var(--shadow-sm);
+    }
+    .pw-wrap {
+      position: relative;
+    }
+    .pw-toggle {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+    .login-err {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 9px;
+      background: var(--red-soft);
+      color: var(--red);
+      font-size: 12.5px;
+      margin-bottom: 12px;
+    }
+    .login-err.show { display: block; }
+    @media (max-width: 880px) {
+      .login-page { grid-template-columns: 1fr; }
+      .login-side { padding: 20px; }
+      .login-side-note { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <aside class="login-side">
+      <div>
+        <a href="index.html" class="uk-logo uk-logo--light">
+          <span class="uk-logo-mark">U</span>
+          <span class="uk-logo-text">usahakita</span>
+        </a>
+        <h1>Selamat datang kembali di ruang kerja bisnis Anda.</h1>
+        <p>Pantau penjualan harian, cek stok menipis, dan balas pesan pelanggan dari satu dashboard.</p>
+      </div>
+      <div class="login-side-note" style="font-size:12px;color:rgba(255,255,255,0.65)">
+        Akun demo: <strong>demo@usahakita.id</strong> / <strong>demo1234</strong>
+      </div>
+    </aside>
+
+    <main class="login-main">
+      <div class="login-card">
+        <div style="margin-bottom:16px">
+          <h2 style="margin:0 0 4px;font-size:20px">Masuk ke UsahaKita</h2>
+          <p style="margin:0;color:var(--muted);font-size:12.5px">Masukkan email dan kata sandi pemilik atau kasir.</p>
+        </div>
+
+        <div class="login-err" id="login-error" role="alert"></div>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="demo@usahakita.id" required autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="login-pass">Kata Sandi</label>
+            <div class="pw-wrap">
+              <input type="password" id="login-pass" placeholder="Masukkan kata sandi" required autocomplete="current-password" style="padding-right:64px" />
+              <button type="button" class="pw-toggle" id="btn-toggle-pw" aria-label="Tampilkan atau sembunyikan kata sandi">Lihat</button>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12.5px">
+            <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="checkbox" id="login-remember" />
+              <span>Ingat saya</span>
+            </label>
+            <button type="button" class="btn-ghost" id="btn-forgot" style="border:none;padding:2px 4px;font-size:12.5px;color:var(--orange-dark);cursor:pointer;background:transparent;font-weight:600">Lupa kata sandi?</button>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btn-login" style="width:100%">Masuk</button>
+        </form>
+
+        <div style="margin:12px 0;text-align:center;color:var(--muted);font-size:12px">atau</div>
+        <button type="button" class="btn btn-light" id="btn-demo-fill" style="width:100%">Masuk sebagai demo</button>
+
+        <div style="text-align:center;margin-top:16px;font-size:12.5px;color:var(--muted)">
+          Belum punya akun? <a href="daftar.html" style="color:var(--orange-dark);font-weight:600">Daftar gratis</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script>
+    (function () {
+      if (UKAuth.currentSession('pemilik')) {
+        window.location.replace('app/index.html');
+        return;
+      }
+
+      var emailEl = document.getElementById('login-email');
+      var passEl = document.getElementById('login-pass');
+      var remEl = document.getElementById('login-remember');
+      var errEl = document.getElementById('login-error');
+      var btnLogin = document.getElementById('btn-login');
+
+      document.getElementById('btn-toggle-pw').addEventListener('click', function () {
+        var show = passEl.type === 'password';
+        passEl.type = show ? 'text' : 'password';
+        this.textContent = show ? 'Sembunyi' : 'Lihat';
+      });
+
+      function showError(msg) {
+        if (!msg) {
+          errEl.classList.remove('show');
+          errEl.textContent = '';
+          return;
+        }
+        errEl.textContent = msg;
+        errEl.classList.add('show');
+      }
+
+      function performLogin() {
+        var email = emailEl.value.trim();
+        var pass = passEl.value;
+        if (!email || !pass) {
+          showError('Email dan kata sandi wajib diisi.');
+          return;
+        }
+        showError('');
+        btnLogin.disabled = true;
+        btnLogin.textContent = 'Memproses...';
+
+        setTimeout(function () {
+          var res = UKAuth.login(email, pass, 'pemilik', { remember: remEl.checked });
+          if (!res.ok) {
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Masuk';
+            showError(res.error);
+            return;
+          }
+          window.location.href = 'app/index.html';
+        }, 450);
+      }
+
+      document.getElementById('login-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        performLogin();
+      });
+
+      document.getElementById('btn-demo-fill').addEventListener('click', function () {
+        emailEl.value = 'demo@usahakita.id';
+        passEl.value = 'demo1234';
+        performLogin();
+      });
+
+      document.getElementById('btn-forgot').addEventListener('click', function () {
+        var modalId = 'uk-forgot-modal';
+        var el = UKUtils.openModal({
+          id: modalId,
+          size: 'sm',
+          title: 'Reset Kata Sandi',
+          bodyHTML:
+            '<p style="margin:0 0 10px;font-size:12.5px;color:var(--muted)">Masukkan alamat email terdaftar. Kami akan mengirim tautan reset kata sandi (simulasi demo).</p>' +
+            '<div class="field" style="margin-bottom:0"><label for="forgot-email">Email</label><input type="email" id="forgot-email" placeholder="nama@usahaanda.id" /></div>',
+          footerHTML:
+            '<button type="button" class="btn btn-light" data-close-forgot>Batal</button>' +
+            '<button type="button" class="btn btn-primary" data-send-forgot>Kirim Tautan</button>'
+        });
+        el.querySelector('[data-close-forgot]').addEventListener('click', function () { UKUtils.closeModal(modalId); });
+        el.querySelector('[data-send-forgot]').addEventListener('click', function () {
+          var val = el.querySelector('#forgot-email').value.trim();
+          if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+            UKUtils.toast('Masukkan email yang valid.', 'error');
+            return;
+          }
+          UKUtils.closeModal(modalId);
+          UKUtils.toast('Tautan reset kata sandi telah dikirim ke ' + val + ' (simulasi).', 'success');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

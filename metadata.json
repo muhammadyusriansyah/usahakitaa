@@ -1,0 +1,8 @@
+{
+  "name": "UsahaKita",
+  "description": "Platform penjualan dan manajemen UMKM terintegrasi: Kasir POS, Produk, Stok, Transaksi, Laporan, Pelanggan, Pesan, Katalog Publik WhatsApp, dan Admin Platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

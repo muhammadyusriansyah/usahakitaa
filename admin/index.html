@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Platform — UsahaKita</title>
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <style>
+    .adm-login-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      background: var(--bg);
+    }
+    .adm-login-side {
+      background: var(--navy);
+      color: #fff;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .adm-login-main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 16px;
+    }
+    .adm-login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 26px;
+      box-shadow: var(--shadow-sm);
+    }
+    .adm-login-card.shake {
+      animation: admShake 0.36s ease;
+    }
+    @keyframes admShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      50% { transform: translateX(7px); }
+      75% { transform: translateX(-5px); }
+    }
+    .adm-pw-wrap { position: relative; }
+    .adm-pw-toggle {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .adm-err {
+      display: none;
+      padding: 10px 12px;
+      border-radius: 9px;
+      background: var(--red-soft);
+      color: var(--red);
+      font-size: 12.5px;
+      margin-bottom: 12px;
+    }
+    .adm-err.show { display: block; }
+    .adm-notif-wrap { position: relative; }
+    .adm-notif-dot {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .adm-notif-pop {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      width: 290px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      display: none;
+      z-index: 80;
+      overflow: hidden;
+    }
+    .adm-notif-pop.open { display: block; }
+    .adm-grid-2 {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    @media (max-width: 900px) {
+      .adm-grid-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 860px) {
+      .adm-login-page { grid-template-columns: 1fr; }
+      .adm-login-side { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="adm-root"></div>
+
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/db.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

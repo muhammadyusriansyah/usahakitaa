@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Usaha — UsahaKita</title>
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <style>
+    .notif-wrap { position: relative; }
+    .notif-dot {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--orange);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .notif-popover {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      width: 300px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      z-index: 80;
+      display: none;
+      overflow: hidden;
+    }
+    .notif-popover.open { display: block; }
+    .notif-item {
+      display: block;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12.5px;
+    }
+    .notif-item:hover { background: #fafbfd; }
+    .notif-item:last-child { border-bottom: none; }
+
+    /* Shared Dashboard / Module utility classes */
+    .dash-grid-2 {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .dash-grid-equal {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    @media (max-width: 960px) {
+      .dash-grid-2, .dash-grid-equal { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="sidebar-overlay" id="uk-sidebar-overlay"></div>
+
+    <aside class="sidebar" id="uk-sidebar" aria-label="Menu navigasi usaha">
+      <div class="sidebar-brand">
+        <a href="../index.html" class="uk-logo uk-logo--light">
+          <span class="uk-logo-mark">U</span>
+          <span class="uk-logo-text">usahakita</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav" id="uk-sidebar-nav">
+        <button type="button" class="nav-item" data-route="dashboard">
+          <span aria-hidden="true">🏠</span><span>Dashboard</span>
+        </button>
+        <button type="button" class="nav-item" data-route="pos">
+          <span aria-hidden="true">🧾</span><span>Kasir / POS</span>
+        </button>
+        <button type="button" class="nav-item" data-route="produk">
+          <span aria-hidden="true">📦</span><span>Produk</span>
+        </button>
+        <button type="button" class="nav-item" data-route="stok">
+          <span aria-hidden="true">📊</span><span>Persediaan Stok</span>
+          <span class="nav-badge" id="badge-low-stock" style="display:none;background:var(--amber)">0</span>
+        </button>
+        <button type="button" class="nav-item" data-route="transaksi">
+          <span aria-hidden="true">💳</span><span>Transaksi</span>
+        </button>
+        <button type="button" class="nav-item" data-route="laporan">
+          <span aria-hidden="true">📈</span><span>Laporan</span>
+        </button>
+        <button type="button" class="nav-item" data-route="pesan">
+          <span aria-hidden="true">💬</span><span>Pesan Pelanggan</span>
+          <span class="nav-badge" id="badge-unread-msg" style="display:none">0</span>
+        </button>
+        <button type="button" class="nav-item" data-route="pelanggan">
+          <span aria-hidden="true">👥</span><span>Pelanggan</span>
+        </button>
+        <button type="button" class="nav-item" data-route="pengaturan">
+          <span aria-hidden="true">⚙️</span><span>Pengaturan Usaha</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-promo" id="uk-sidebar-promo">
+        <div class="sidebar-promo-title">Kembangkan usahamu</div>
+        <div class="sidebar-promo-sub">Paket saat ini: <strong id="uk-plan-name" style="color:#fff">Free</strong></div>
+        <button type="button" class="btn btn-primary btn-sm" id="uk-btn-upgrade-side" style="width:100%">Kelola Paket</button>
+      </div>
+
+      <div class="sidebar-footer">
+        <button type="button" class="nav-item" id="uk-btn-logout">
+          <span aria-hidden="true">🚪</span><span>Keluar</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="btn btn-light btn-icon mobile-menu-btn" id="uk-mobile-menu" aria-label="Buka menu samping">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="topbar-breadcrumb" id="uk-breadcrumb">Dashboard</div>
+        </div>
+
+        <div class="topbar-right">
+          <form class="topbar-search" id="uk-global-search-form" role="search">
+            <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="uk-global-search" placeholder="Cari produk..." aria-label="Cari produk secara global" />
+          </form>
+
+          <div class="notif-wrap">
+            <button type="button" class="btn btn-light btn-icon" id="uk-notif-btn" aria-label="Notifikasi usaha" aria-expanded="false">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="notif-dot" id="uk-notif-count" style="display:none">0</span>
+            </button>
+            <div class="notif-popover" id="uk-notif-popover" role="region" aria-label="Daftar notifikasi"></div>
+          </div>
+
+          <div class="avatar-pill" title="Akun aktif">
+            <span class="avatar-circle" id="uk-avatar-init">U</span>
+            <div class="avatar-meta" style="line-height:1.2">
+              <div id="uk-user-name" style="font-size:12px;font-weight:700">Pemilik</div>
+              <div id="uk-user-role" style="font-size:10.5px;color:var(--muted);text-transform:capitalize">Pemilik</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-content">
+        <div id="uk-verify-banner" class="banner info" style="display:none">
+          <span><strong>Verifikasi Email (Demo):</strong> Periksa kotak masuk Anda untuk mengonfirmasi alamat email usaha.</span>
+          <button type="button" class="btn btn-light btn-sm" id="uk-dismiss-verify">Tutup</button>
+        </div>
+        <div id="uk-module-root"></div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../assets/js/utils.js"></script>
+  <script src="../assets/js/db.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script>
+    (function () {
+      var session = UKAuth.requireAuth('pemilik', '../masuk.html');
+      if (!session) return;
+
+      var ROUTE_LABELS = {
+        dashboard: 'Dashboard',
+        pos: 'Kasir / POS',
+        produk: 'Produk',
+        stok: 'Persediaan Stok',
+        transaksi: 'Transaksi',
+        laporan: 'Laporan',
+        pesan: 'Pesan Pelanggan',
+        pelanggan: 'Pelanggan',
+        pengaturan: 'Pengaturan Usaha'
+      };
+
+      var KASIR_ALLOWED = ['pos', 'transaksi', 'produk'];
+      var modules = {};
+      var currentRoute = '';
+
+      window.UK = {
+        state: { productSearch: '', settingsTab: 'profil' },
+        registerModule: function (name, mod) {
+          modules[name] = mod;
+        },
+        getSession: function () {
+          return UKAuth.currentSession('pemilik') || session;
+        },
+        getTenant: function () {
+          var s = this.getSession();
+          return db.tenants.get(s.tenantId);
+        },
+        getSettings: function () {
+          var s = this.getSession();
+          return db.settings.get(s.tenantId);
+        },
+        isKasir: function () {
+          return this.getSession().peranUser === 'kasir';
+        },
+        navigate: function (route) {
+          window.location.hash = '#/' + route;
+        },
+        refreshShell: function () {
+          var s = this.getSession();
+          var tenant = this.getTenant();
+          if (!tenant) {
+            UKAuth.logout('pemilik');
+            window.location.replace('../masuk.html');
+            return;
+          }
+          var plan = db.plans.get(tenant.paket);
+          document.getElementById('uk-plan-name').textContent = plan ? plan.nama : String(tenant.paket || 'Free');
+          document.getElementById('uk-user-name').textContent = s.nama || 'Pengguna';
+          document.getElementById('uk-user-role').textContent = s.peranUser || 'pemilik';
+          document.getElementById('uk-avatar-init').textContent = String(s.nama || 'U').trim().charAt(0).toUpperCase();
+
+          var prods = db.products.list({ tenantId: s.tenantId }).filter(function (p) {
+            return p.status !== 'diarsipkan' && Number(p.stok) <= Number(p.stokMin);
+          });
+          var convs = db.conversations.list({ tenantId: s.tenantId });
+          var unreadTotal = convs.reduce(function (acc, c) { return acc + (Number(c.unread) || 0); }, 0);
+
+          var lowBadge = document.getElementById('badge-low-stock');
+          if (lowBadge) {
+            lowBadge.textContent = String(prods.length);
+            lowBadge.style.display = prods.length > 0 ? 'inline-block' : 'none';
+          }
+          var msgBadge = document.getElementById('badge-unread-msg');
+          if (msgBadge) {
+            msgBadge.textContent = String(unreadTotal);
+            msgBadge.style.display = unreadTotal > 0 ? 'inline-block' : 'none';
+          }
+
+          var notifCount = prods.length + unreadTotal;
+          var notifEl = document.getElementById('uk-notif-count');
+          if (notifEl) {
+            notifEl.textContent = String(notifCount);
+            notifEl.style.display = notifCount > 0 ? 'flex' : 'none';
+          }
+
+          var pop = document.getElementById('uk-notif-popover');
+          if (pop) {
+            var html = '<div style="padding:10px 14px;border-bottom:1px solid var(--line);font-weight:700;font-size:12.5px">Notifikasi Usaha</div>';
+            if (notifCount === 0) {
+              html += '<div style="padding:16px 14px;color:var(--muted);font-size:12px">Semua stok aman dan tidak ada pesan baru.</div>';
+            } else {
+              prods.slice(0, 4).forEach(function (p) {
+                html += '<a href="#/stok" class="notif-item"><strong>Stok menipis:</strong> ' + UKUtils.escapeHTML(p.nama) + ' <span style="color:var(--red)">(sisa ' + Number(p.stok) + ')</span></a>';
+              });
+              convs.filter(function (c) { return Number(c.unread) > 0; }).slice(0, 4).forEach(function (c) {
+                html += '<a href="#/pesan" class="notif-item"><strong>Pesan baru:</strong> ' + UKUtils.escapeHTML(c.nama) + ' (' + Number(c.unread) + ')</a>';
+              });
+            }
+            pop.innerHTML = html;
+          }
+
+          var routeLabel = ROUTE_LABELS[currentRoute] || 'Dashboard';
+          document.getElementById('uk-breadcrumb').textContent = tenant.nama + ' / ' + routeLabel;
+        }
+      };
+
+      /* Cek role kasir pada sidebar */
+      if (window.UK.isKasir()) {
+        document.querySelectorAll('#uk-sidebar-nav .nav-item').forEach(function (btn) {
+          var r = btn.getAttribute('data-route');
+          if (KASIR_ALLOWED.indexOf(r) === -1) btn.style.display = 'none';
+        });
+        var promo = document.getElementById('uk-sidebar-promo');
+        if (promo) promo.style.display = 'none';
+      }
+
+      /* Banner verifikasi email simulasi */
+      try {
+        var vKey = 'uk_verify_banner_' + session.tenantId;
+        var vBanner = document.getElementById('uk-verify-banner');
+        if (localStorage.getItem(vKey) === 'pending') {
+          vBanner.style.display = 'flex';
+        }
+        document.getElementById('uk-dismiss-verify').addEventListener('click', function () {
+          vBanner.style.display = 'none';
+          try { localStorage.setItem(vKey, 'dismissed'); } catch (_) {}
+        });
+      } catch (_) {}
+
+      /* Sidebar drawer mobile */
+      var sidebar = document.getElementById('uk-sidebar');
+      var overlay = document.getElementById('uk-sidebar-overlay');
+      function closeDrawer() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      }
+      document.getElementById('uk-mobile-menu').addEventListener('click', function () {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+      });
+      overlay.addEventListener('click', closeDrawer);
+
+      document.querySelectorAll('#uk-sidebar-nav .nav-item').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var r = btn.getAttribute('data-route');
+          closeDrawer();
+          window.UK.navigate(r);
+        });
+      });
+
+      document.getElementById('uk-btn-upgrade-side').addEventListener('click', function () {
+        window.UK.state.settingsTab = 'paket';
+        closeDrawer();
+        window.UK.navigate('pengaturan');
+      });
+
+      document.getElementById('uk-btn-logout').addEventListener('click', function () {
+        UKAuth.logout('pemilik');
+        window.location.replace('../masuk.html');
+      });
+
+      /* Pencarian global -> buka Produk dengan kata kunci */
+      document.getElementById('uk-global-search-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var q = document.getElementById('uk-global-search').value.trim();
+        window.UK.state.productSearch = q;
+        if (currentRoute === 'produk' && modules.produk) {
+          renderRoute('produk');
+        } else {
+          window.UK.navigate('produk');
+        }
+      });
+
+      /* Notifikasi popover */
+      var notifBtn = document.getElementById('uk-notif-btn');
+      var notifPop = document.getElementById('uk-notif-popover');
+      notifBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var open = notifPop.classList.toggle('open');
+        notifBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', function (e) {
+        if (!notifPop.contains(e.target) && e.target !== notifBtn) {
+          notifPop.classList.remove('open');
+          notifBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      function renderRoute(route) {
+        if (!UKAuth.requireAuth('pemilik', '../masuk.html')) return;
+        var clean = route || (window.UK.isKasir() ? 'pos' : 'dashboard');
+        if (!ROUTE_LABELS[clean]) clean = window.UK.isKasir() ? 'pos' : 'dashboard';
+        if (window.UK.isKasir() && KASIR_ALLOWED.indexOf(clean) === -1) {
+          UKUtils.toast('Akses menu ini dibatasi untuk peran Kasir.', 'warning');
+          clean = 'pos';
+          window.location.hash = '#/pos';
+        }
+        currentRoute = clean;
+
+        document.querySelectorAll('#uk-sidebar-nav .nav-item').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-route') === clean);
+        });
+
+        window.UK.refreshShell();
+        var root = document.getElementById('uk-module-root');
+        var mod = modules[clean];
+        if (mod && typeof mod.render === 'function') {
+          root.innerHTML = '';
+          mod.render(root);
+          if (typeof mod.onEnter === 'function') mod.onEnter(root);
+        } else {
+          root.innerHTML =
+            '<div class="empty-note">' +
+              '<div style="font-size:28px">🛠️</div>' +
+              '<h4>Segera hadir</h4>' +
+              '<p>Modul <strong>' + UKUtils.escapeHTML(ROUTE_LABELS[clean] || clean) + '</strong> sedang dalam tahap pengembangan.</p>' +
+            '</div>';
+        }
+      }
+
+      function handleHash() {
+        var h = window.location.hash.replace(/^#\/?/, '').split('?')[0].trim();
+        if (!h) {
+          h = window.UK.isKasir() ? 'pos' : 'dashboard';
+          window.location.replace('#/' + h);
+          return;
+        }
+        renderRoute(h);
+      }
+
+      window.addEventListener('hashchange', handleHash);
+      window.addEventListener('DOMContentLoaded', handleHash);
+    })();
+  </script>
+
+  <script src="js/dashboard.js"></script>
+  <script src="js/produk.js"></script>
+  <script src="js/pos.js"></script>
+  <script src="js/stok.js"></script>
+  <script src="js/transaksi.js"></script>
+  <script src="js/laporan.js"></script>
+  <script src="js/pelanggan.js"></script>
+  <script src="js/pesan.js"></script>
+  <script src="js/pengaturan.js"></script>
+</body>
+</html>
